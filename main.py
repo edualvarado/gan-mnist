@@ -176,6 +176,16 @@ def train_gan(generator_model, discriminator_model, gan_model, dataset, latent_d
             loss_gan = gan_model.train_on_batch(x_gan, y_gan)
             print("Epoch: {}, Batch per epoch: {}/{}, Discriminator loss: {}, GAN loss: {}".format(i+1, j+1, batches_per_epoch, discriminator_loss, loss_gan))
 
+# Function to save generated image
+def save_fig(image, epoch, n = 10):
+    for i in range(n*n):
+        plt.subplot(n,n,1+i)
+        plt.axis("off")
+        plt.imshow(image[i,:,:,0], cmap = "gray_r")
+    filename = "generated_plot_e%03d.png" % (epoch + 1)
+    plt.savefig(filename)
+    plt.close()
+
 # Create function to evaluate each X epochs
 def perforance(epoch, generator_model, discriminator_model, dataset, latent_dim, n_samples = 100):
     x_real, y_real = shuffle_real_set(dataset, n_samples)
