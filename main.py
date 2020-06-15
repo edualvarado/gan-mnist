@@ -13,8 +13,7 @@ from tensorflow.keras.layers import Conv2D, LeakyReLU, Dropout, Flatten, Dense, 
 from tensorflow.keras.optimizers import Adam
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.random import rand
-from numpy.random import randint
+from numpy.random import rand, randint, randn
 
 # MNIST dataset - define sets and print information
 from tensorflow.keras.datasets.mnist import load_data
@@ -122,4 +121,11 @@ print("\n===== GENERATOR =====")
 latent_dim = 100
 generator_model = generator(latent_dim)
 generator_model.summary()
+
+def generate_latent_points(latent_dim, num_samples):
+    x_input_generator = randn(latent_dim * num_samples)
+    x_input_generator = x_input_generator.reshape(num_samples, latent_dim)
+    return x_input_generator
+
+
 
