@@ -46,11 +46,17 @@ plt.show()
 '''
 
 # Discriminator (binary classification)
+# (28, 28, 1) -> ()
 def discriminator():
     model = Sequential()
-    model.add(Conv2D(64, (3,3), strides = (2,2), padding = "same", input_shape = (28,28,1)))
+    model.add(Conv2D(64, (3,3), strides = (1,1), padding = "same", input_shape = (28,28,1)))
     model.add(LeakyReLU(alpha = 0.2))
     model.add(Dropout(0.4))
+    model.add(Conv2D(64, (3,3), strides = (1,1), padding = "same"))
+    model.add(LeakyReLU(alpha = 0.2))
+    model.add(Dropout(0.4))
+    model.add(Flatten())
+    model.add(Dense(1, activation = "sigmoid"))
     opt = Adam(lr = 0.0002, beta_1 = 0.5)
     model.compile(loss = "binary_crossentropy", optimizer = opt, metrics = ["accuracy"])
     return model
