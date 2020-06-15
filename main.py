@@ -176,4 +176,11 @@ def train_gan(generator_model, discriminator_model, gan_model, dataset, latent_d
             loss_gan = gan_model.train_on_batch(x_gan, y_gan)
             print("Epoch: {}, Batch per epoch: {}/{}, Discriminator loss: {}, GAN loss: {}".format(i+1, j+1, batches_per_epoch, discriminator_loss, loss_gan))
 
+# Create function to evaluate each X epochs
+def perforance(epoch, generator_model, discriminator_model, dataset, latent_dim, n_samples = 100):
+    x_real, y_real = shuffle_real_set(dataset, n_samples)
+    x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, n_samples)
+    _, acc_real = discriminator_model.evaluate(x_real, y_real, verbose = 0)
+    _, acc_fake = discriminator_model.evaluate(x_fake, y_fake, verbose = 0)
+    print("Accuracy real: {} - fake: {}".format(acc_real, acc_fake))
 
