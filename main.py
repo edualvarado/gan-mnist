@@ -192,7 +192,7 @@ def perforance(epoch, generator_model, discriminator_model, dataset, latent_dim,
     x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, n_samples)
     _, acc_real = discriminator_model.evaluate(x_real, y_real, verbose = 0)
     _, acc_fake = discriminator_model.evaluate(x_fake, y_fake, verbose = 0)
-    print("Accuracy real: {} - fake: {}".format(acc_real, acc_fake))
+    print("Accuracy real: {} - fake: {}".format(acc_real*100, acc_fake*100))
 
 # Final train
 def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, epochs = EPOCHS, batches = BATCH_SIZE):
