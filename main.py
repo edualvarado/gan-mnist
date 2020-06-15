@@ -11,9 +11,6 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, LeakyReLU, Dropout, Flatten, Dense
 from tensorflow.keras.optimizers import Adam
-
-print(tf.__version__)
-
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -47,6 +44,7 @@ plt.show()
 BUFFER_SIZE = 60000
 BATCH_SIZE = 256
 
+
 # Function to randomize datasets with respective labels
 def shuffle_real_set(dataset, BUFFER_SIZE, BATCH_SIZE):
     random_positions = random.randint(0, BUFFER_SIZE, BATCH_SIZE)
@@ -56,6 +54,8 @@ def shuffle_real_set(dataset, BUFFER_SIZE, BATCH_SIZE):
 
 # Discriminator (binary classification)
 # (28, 28, 1) -> (14, 14, 64) -> (7,7,64) -> (3136) -> (1)
+
+
 def discriminator():
     model = Sequential()
     model.add(Conv2D(64, (3,3), strides = (2,2), padding = "same", input_shape = (28,28,1)))
@@ -72,4 +72,5 @@ def discriminator():
 
 discriminator_model = discriminator()
 discriminator_model.summary()
+
 
