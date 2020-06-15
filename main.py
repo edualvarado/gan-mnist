@@ -213,3 +213,8 @@ def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, 
             print("Epoch: {}, Batch per epoch: {}/{}, Discriminator loss: {}, GAN loss: {}".format(i+1, j+1, batches_per_epoch, discriminator_loss, loss_gan))
         if (i+1) % 10 == 0:
             perforance(i, generator_model, discriminator_model, dataset, latent_dim)
+
+
+# Training
+latent_dim = 100
+train(generator_model, discriminator_model, gan_model, train_x, latent_dim)
