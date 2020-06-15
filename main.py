@@ -134,3 +134,11 @@ def generate_fake_data_gen(generator_model, latent_dim, num_samples):
     fake_y = np.zeros((num_samples, 1))
     return fake_x, fake_y
 
+# Test to see fake data
+num_samples = 20
+fake_x, fake_y = generate_fake_data_gen(generator_model, latent_dim, num_samples)
+for i in range(num_samples):
+    plt.subplot (4, 5, i+1)
+    plt.axis("off")
+    plt.imshow(fake_x[i, :, :, 0], cmap = "gray_r")
+plt.show()
