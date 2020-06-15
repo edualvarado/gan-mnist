@@ -46,7 +46,7 @@ plt.show()
 '''
 
 # Discriminator (binary classification)
-# (28, 28, 1) -> ()
+# (28, 28, 1) -> (14, 14, 64) -> (7,7,64) -> (3136) -> (1)
 def discriminator():
     model = Sequential()
     model.add(Conv2D(64, (3,3), strides = (2,2), padding = "same", input_shape = (28,28,1)))
