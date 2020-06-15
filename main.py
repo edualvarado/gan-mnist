@@ -46,10 +46,10 @@ BATCH_SIZE = 256
 
 
 # Function to randomize datasets with respective labels
-def shuffle_real_set(dataset, BUFFER_SIZE, BATCH_SIZE):
-    random_positions = random.randint(0, BUFFER_SIZE, BATCH_SIZE)
+def shuffle_real_set(dataset, num_samples):
+    random_positions = random.randint(0, dataset.shape[0], num_samples)
     random_x = dataset[random_positions]
-    random_y = np.ones((BATCH_SIZE, 1))
+    random_y = np.ones((num_samples, 1))
     return random_x, random_y
 
 # Discriminator (binary classification)
@@ -74,3 +74,12 @@ discriminator_model = discriminator()
 discriminator_model.summary()
 
 
+# For testing - generate fake data (noise)
+def generate_fake_data(num_samples):
+    fake_x = np.random.rand(28 * 28 * num_samples)
+    fake_x = fake_x.reshape((num_samples, 28, 28, 1)).astype("float32")
+    fake_y = np.zeros((num_samples, 1))
+    return fake_x, fake_y
+
+f_x, f_y = generate_fake_data(BATCH_SIZE)
+print("X shape: {} - Y shape: {}".format(f_x.shape, f_y.shape))
