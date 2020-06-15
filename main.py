@@ -71,7 +71,7 @@ def discriminator():
     return model
 
 
-print("===== DISCRIMINATOR =====")
+print("\n===== DISCRIMINATOR =====")
 discriminator_model = discriminator()
 discriminator_model.summary()
 
@@ -118,7 +118,8 @@ def generator(latent_dim):
     return model
 
 
-print("===== GENERATOR =====")
+print("\n===== GENERATOR =====")
 latent_dim = 100
 generator_model = generator(latent_dim)
 generator_model.summary()
+
