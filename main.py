@@ -9,7 +9,7 @@ Task: In this assignment, I will create a GAN in order to generate novel numbers
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, LeakyReLU, Dropout, Flatten, Dense
+from tensorflow.keras.layers import Conv2D, LeakyReLU, Dropout, Flatten, Dense, Reshape, Conv2DTranspose
 from tensorflow.keras.optimizers import Adam
 import matplotlib.pyplot as plt
 import numpy as np
@@ -53,10 +53,9 @@ def shuffle_real_set(dataset, num_samples):
     random_y = np.ones((num_samples, 1))
     return random_x, random_y
 
+
 # Discriminator (binary classification)
 # (28, 28, 1) -> (14, 14, 64) -> (7,7,64) -> (3136) -> (1)
-
-
 def discriminator():
     model = Sequential()
     model.add(Conv2D(64, (3,3), strides = (2,2), padding = "same", input_shape = (28,28,1)))
@@ -71,6 +70,8 @@ def discriminator():
     model.compile(loss = "binary_crossentropy", optimizer = opt, metrics = ["accuracy"])
     return model
 
+
+print("===== DISCRIMINATOR =====")
 discriminator_model = discriminator()
 discriminator_model.summary()
 
@@ -92,4 +93,30 @@ def train_discriminator(model, dataset, n_iterations = 100, batch_size = BATCH_S
         _, fake_acc = model.train_on_batch(x_fake, y_fake)
         print("i: {} -> real acc = {} - fake acc = {}".format(i, real_acc*100, fake_acc * 100))
 
-train_discriminator(discriminator_model, train_x)
+# train_discriminator(discriminator_model, train_x)
+
+'''
+Until here, we can train standalone discriminator
+'''
+
+
+# Generator (create images with each value in a range of [0,1]
+# We start from random low-res noise, then upsample to 14x14 and finally 28x28
+def generator(latent_dim):
+    model = Sequential()
+    n_nodes = 128 * 7 * 7
+    model.add(Dense(n_nodes, input_dim = latent_dim))
+    model.add(LeakyReLU(alpha = 0.2))
+    model.add(Reshape((7, 7, 128)))
+    model.add(Conv2DTranspose(128, (4, 4), strides = (2, 2), padding = "same"))
+    model.add(LeakyReLU(alpha = 0.2))
+    model.add(Conv2DTranspose(128, (4, 4), strides = (2, 2), padding = "same"))
+    model.add(LeakyReLU(alpha = 0.2))
+    model.add(Conv2D(1, (7, 7), activation = "sigmoid", padding = "same"))
+    return model
+
+
+print("===== GENERATOR =====")
+latent_dim = 100
+generator_model = generator(latent_dim)
+generator_model.summary()
