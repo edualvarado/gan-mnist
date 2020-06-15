@@ -102,6 +102,8 @@ Until here, we can train standalone discriminator
 
 # Generator (create images with each value in a range of [0,1]
 # We start from random low-res noise, then upsample to 14x14 and finally 28x28
+# TODO: Check deconvolutions and shapes
+
 def generator(latent_dim):
     model = Sequential()
     n_nodes = 128 * 7 * 7
