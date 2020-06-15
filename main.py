@@ -127,5 +127,10 @@ def generate_latent_points(latent_dim, num_samples):
     x_input_generator = x_input_generator.reshape(num_samples, latent_dim)
     return x_input_generator
 
-
+# For testing - generate fake data using generator (noise)
+def generate_fake_data_gen(generator_model, latent_dim, num_samples):
+    x_input = generate_latent_points(latent_dim, num_samples)
+    fake_x = generator_model.predict(x_input)
+    fake_y = np.zeros((num_samples, 1))
+    return fake_x, fake_y
 
