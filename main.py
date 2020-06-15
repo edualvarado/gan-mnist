@@ -13,7 +13,8 @@ from tensorflow.keras.layers import Conv2D, LeakyReLU, Dropout, Flatten, Dense
 from tensorflow.keras.optimizers import Adam
 import matplotlib.pyplot as plt
 import numpy as np
-import random
+from numpy.random import rand
+from numpy.random import randint
 
 # MNIST dataset - define sets and print information
 from tensorflow.keras.datasets.mnist import load_data
@@ -47,7 +48,7 @@ BATCH_SIZE = 256
 
 # Function to randomize datasets with respective labels
 def shuffle_real_set(dataset, num_samples):
-    random_positions = random.randint(0, dataset.shape[0], num_samples)
+    random_positions = randint(0, dataset.shape[0], num_samples)
     random_x = dataset[random_positions]
     random_y = np.ones((num_samples, 1))
     return random_x, random_y
@@ -76,10 +77,19 @@ discriminator_model.summary()
 
 # For testing - generate fake data (noise)
 def generate_fake_data(num_samples):
-    fake_x = np.random.rand(28 * 28 * num_samples)
+    fake_x = rand(28 * 28 * num_samples)
     fake_x = fake_x.reshape((num_samples, 28, 28, 1)).astype("float32")
     fake_y = np.zeros((num_samples, 1))
     return fake_x, fake_y
 
-f_x, f_y = generate_fake_data(BATCH_SIZE)
-print("X shape: {} - Y shape: {}".format(f_x.shape, f_y.shape))
+
+# Train discriminator (TEST)
+def train_discriminator(model, dataset, n_iterations = 100, batch_size = BATCH_SIZE):
+    for i in range(n_iterations):
+        x_real, y_real = shuffle_real_set(dataset, int(batch_size/2))
+        _, real_acc = model.train_on_batch(x_real, y_real)
+        x_fake, y_fake = generate_fake_data(int(batch_size/2))
+        _, fake_acc = model.train_on_batch(x_fake, y_fake)
+        print("i: {} -> real acc = {} - fake acc = {}".format(i, real_acc*100, fake_acc * 100))
+
+train_discriminator(discriminator_model, train_x)
