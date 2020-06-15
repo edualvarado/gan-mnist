@@ -137,8 +137,23 @@ def generate_fake_data_gen(generator_model, latent_dim, num_samples):
 # Test to see fake data
 num_samples = 20
 fake_x, fake_y = generate_fake_data_gen(generator_model, latent_dim, num_samples)
+
+'''
 for i in range(num_samples):
     plt.subplot (4, 5, i+1)
     plt.axis("off")
     plt.imshow(fake_x[i, :, :, 0], cmap = "gray_r")
 plt.show()
+'''
+
+
+# Define GAN together
+def gan(generator_model, discriminator_model):
+    discriminator_model.trainable = False  # freeze discriminator
+    model = Sequential()
+    model.add(generator_model)
+    model.add(discriminator_model)
+    opt = Adam(lr=0.0002, beta_1 = 0.5)
+    model.compile(loss = "binary_crossentropy", optimizer = opt)
+    return model
+
