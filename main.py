@@ -218,3 +218,10 @@ def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, 
 # Training
 latent_dim = 100
 train(generator_model, discriminator_model, gan_model, train_x, latent_dim)
+
+# TODO:
+# - Encapsulation
+# - Organize/comment code
+# - Check (briefly) hyperparameters
+# - Evaluate more often
+# - Save model before going to C++
