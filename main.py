@@ -72,7 +72,7 @@ def discriminator():
 
 print("\n===== DISCRIMINATOR =====")
 discriminator_model = discriminator()
-discriminator_model.summary()
+#discriminator_model.summary()
 
 
 # For testing - generate fake data (noise)
@@ -120,7 +120,7 @@ def generator(latent_dim):
 print("\n===== GENERATOR =====")
 latent_dim = 100
 generator_model = generator(latent_dim)
-generator_model.summary()
+#generator_model.summary()
 
 def generate_latent_points(latent_dim, num_samples):
     x_input_generator = randn(latent_dim * num_samples)
@@ -157,3 +157,4 @@ def gan(generator_model, discriminator_model):
     model.compile(loss = "binary_crossentropy", optimizer = opt)
     return model
 
+#gan_model = gan(generator_model, discriminator_model)
