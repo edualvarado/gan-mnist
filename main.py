@@ -16,7 +16,7 @@ print(tf.__version__)
 
 import matplotlib.pyplot as plt
 import numpy as np
-
+import random
 
 # MNIST dataset - define sets and print information
 from tensorflow.keras.datasets.mnist import load_data
@@ -25,16 +25,14 @@ print("Before processing")
 print("Train X shape: {} - Train Y shape: {}".format(train_x.shape, train_y.shape))
 print("Test X shape: {} - Test Y shape: {}".format(test_x.shape, test_y.shape))
 
-# Data not normalized - Reshape and normalize here
-'''
+# Data not normalized - Reshape (add grayscale dim) and normalize here
 train_x = train_x.reshape(train_x.shape[0], 28, 28, 1).astype("float32")
-train_x = (train_x - 127.5) / 127.5
+train_x = train_x / 255.0
 test_x = test_x.reshape(test_x.shape[0], 28, 28, 1).astype("float32")
-test_x = (test_x - 127.5) / 127.5
+test_x = test_x / 255.0
 print("After processing")
 print("Train X shape: {} - Train Y shape: {}".format(train_x.shape, train_y.shape))
 print("Test X shape: {} - Test Y shape: {}".format(test_x.shape, test_y.shape))
-'''
 
 # Plotting numbers for testing
 '''
@@ -44,6 +42,17 @@ for i in range(10):
     plt.imshow(train_x[i], cmap="gray_r")
 plt.show()
 '''
+
+# Shuffle batches and randomize data
+BUFFER_SIZE = 60000
+BATCH_SIZE = 256
+
+# Function to randomize datasets with respective labels
+def shuffle_real_set(dataset, BUFFER_SIZE, BATCH_SIZE):
+    random_positions = random.randint(0, BUFFER_SIZE, BATCH_SIZE)
+    random_x = dataset[random_positions]
+    random_y = np.ones((BATCH_SIZE, 1))
+    return random_x, random_y
 
 # Discriminator (binary classification)
 # (28, 28, 1) -> (14, 14, 64) -> (7,7,64) -> (3136) -> (1)
@@ -63,3 +72,4 @@ def discriminator():
 
 discriminator_model = discriminator()
 discriminator_model.summary()
+
