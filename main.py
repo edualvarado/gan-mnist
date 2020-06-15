@@ -162,17 +162,17 @@ def gan(generator_model, discriminator_model):
 gan_model = gan(generator_model, discriminator_model)
 gan_model.summary()
 
-def train_gan(generator_model, discriminator_model, gan_model, dataset, latent_dim, epochs = EPOCHS, batch = BATCH_SIZE):
-    batches_per_epoch = int(dataset.shape[0] / batch)
-    half_batch = int(batch / 2)
+def train_gan(generator_model, discriminator_model, gan_model, dataset, latent_dim, epochs = EPOCHS, batches = BATCH_SIZE):
+    batches_per_epoch = int(dataset.shape[0] / batches)
+    half_batch = int(batches / 2)
     for i in range(epochs):
         for j in range(batches_per_epoch):
             x_real, y_real = shuffle_real_set(dataset, half_batch)
             x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, half_batch)
             x_training, y_training = np.vstack((x_real, x_fake)), vstack((y_real, y_fake))
             discriminator_loss, _ = discriminator_model.train_on_batch(x_training, y_training)
-            x_gan = generate_latent_points(latent_dim, batch)
-            y_gan = np.ones((batch, 1))
+            x_gan = generate_latent_points(latent_dim, batches)
+            y_gan = np.ones((batches, 1))
             loss_gan = gan_model.train_on_batch(x_gan, y_gan)
             print("Epoch: {}, Batch per epoch: {}/{}, Discriminator loss: {}, GAN loss: {}".format(i+1, j+1, batches_per_epoch, discriminator_loss, loss_gan))
 
@@ -184,3 +184,19 @@ def perforance(epoch, generator_model, discriminator_model, dataset, latent_dim,
     _, acc_fake = discriminator_model.evaluate(x_fake, y_fake, verbose = 0)
     print("Accuracy real: {} - fake: {}".format(acc_real, acc_fake))
 
+# Final train
+def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, epochs = EPOCHS, batches = BATCH_SIZE):
+    batches_per_epoch = int(dataset.shape[0] / batches)
+    half_batch = int(batches / 2)
+    for i in range(epochs):
+        for j in range(batches_per_epoch):
+            x_real, y_real = shuffle_real_set(dataset, half_batch)
+            x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, half_batch)
+            x_training, y_training = np.vstack((x_real, x_fake)), vstack((y_real, y_fake))
+            discriminator_loss, _ = discriminator_model.train_on_batch(x_training, y_training)
+            x_gan = generate_latent_points(latent_dim, batches)
+            y_gan = np.ones((batches, 1))
+            loss_gan = gan_model.train_on_batch(x_gan, y_gan)
+            print("Epoch: {}, Batch per epoch: {}/{}, Discriminator loss: {}, GAN loss: {}".format(i+1, j+1, batches_per_epoch, discriminator_loss, loss_gan))
+        if (i+1) % 10 == 0:
+            perforance(i, generator_model, discriminator_model, dataset, latent_dim)
