@@ -13,6 +13,7 @@ from tensorflow.keras.layers import Conv2D, LeakyReLU, Dropout, Flatten, Dense, 
 from tensorflow.keras.optimizers import Adam
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy import vstack
 from numpy.random import rand, randint, randn
 
 # MNIST dataset - define sets and print information
@@ -43,6 +44,7 @@ plt.show()
 # Shuffle batches and randomize data
 BUFFER_SIZE = 60000
 BATCH_SIZE = 256
+EPOCHS = 100
 
 
 # Function to randomize datasets with respective labels
@@ -157,4 +159,21 @@ def gan(generator_model, discriminator_model):
     model.compile(loss = "binary_crossentropy", optimizer = opt)
     return model
 
-#gan_model = gan(generator_model, discriminator_model)
+gan_model = gan(generator_model, discriminator_model)
+gan_model.summary()
+
+def train_gan(generator_model, discriminator_model, gan_model, dataset, latent_dim, epochs = EPOCHS, batch = BATCH_SIZE):
+    batches_per_epoch = int(dataset.shape[0] / batch)
+    half_batch = int(batch / 2)
+    for i in range(epochs):
+        for j in range(batches_per_epoch):
+            x_real, y_real = shuffle_real_set(dataset, half_batch)
+            x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, half_batch)
+            x_training, y_training = np.vstack((x_real, x_fake)), vstack((y_real, y_fake))
+            discriminator_loss, _ = discriminator_model.train_on_batch(x_training, y_training)
+            x_gan = generate_latent_points(latent_dim, batch)
+            y_gan = np.ones((batch, 1))
+            loss_gan = gan_model.train_on_batch(x_gan, y_gan)
+            print("Epoch: {}, Batch per epoch: {}/{}, Discriminator loss: {}, GAN loss: {}".format(i+1, j+1, batches_per_epoch, discriminator_loss, loss_gan))
+
+
