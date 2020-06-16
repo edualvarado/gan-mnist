@@ -20,7 +20,7 @@ from tensorflow.keras.datasets.mnist import load_data
 
 # ================ #
 BATCH_SIZE = 256
-EPOCHS = 1
+EPOCHS = 100
 LATENT_DIM = 100
 # ================ #
 
