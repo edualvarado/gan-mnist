@@ -55,7 +55,7 @@ def load_real_data():
     print("Train X shape: {} - Train Y shape: {}".format(x_train.shape, y_train.shape))
     print("Test X shape: {} - Test Y shape: {}".format(x_test.shape, y_test.shape))
     # Plot example MNIST data
-    plot_example_data(x_train)
+    # plot_example_data(x_train)
     return x_train, y_train, x_test, y_test
 
 
