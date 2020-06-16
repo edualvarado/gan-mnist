@@ -116,7 +116,7 @@ def save_fig(image, epoch, row_num_images=10):
     plt.close()
 
 
-def save_checkpoint(epoch, gene_model, dis_model, dataset, latent_dim, num_samples=100):
+def save_checkpoint(epoch, gene_model, dis_model, dataset, latent_dim, save_model, num_samples=100):
     """
     Each time is called, it prints accuracies and save checkpoint of the network (.h5).
     First, generate both, real data from MNIST dataset and fake data from Generator.
@@ -128,14 +128,16 @@ def save_checkpoint(epoch, gene_model, dis_model, dataset, latent_dim, num_sampl
     x_fake, y_fake = generate_fake_data_gene(gene_model, latent_dim, num_samples)
     _, acc_real = dis_model.evaluate(x_real, y_real, verbose=0)
     _, acc_fake = dis_model.evaluate(x_fake, y_fake, verbose=0)
-    print("============================================================================")
-    print("Checkpoint saved!")
+    print("Checkpoint =================================================================")
+    print("Image saved!")
     print("Epoch {} - Accuracy: on real data: {:.2f}% - on fake data: {:.2f}%".format(epoch, acc_real * 100,
                                                                                       acc_fake * 100))
-    print("============================================================================")
     save_fig(x_fake, epoch)
-    filename = "generator_model_%03d.h5" % (epoch + 1)
-    gene_model.save(filename)
+    if save_model:
+        print("Model saved!")
+        filename = "generator_model_%03d.h5" % (epoch + 1)
+        gene_model.save(filename)
+    print("============================================================================")
 
 
 def discriminator():
@@ -246,7 +248,10 @@ def train(gene_model, dis_model, gan_model, dataset, latent_dim, epochs=EPOCHS, 
                                                                                                      discriminator_loss,
                                                                                                      loss_gan))
         if (i + 1) % epoch_checkpoint == 0:
-            save_checkpoint(i, gene_model, dis_model, dataset, latent_dim)
+            save_checkpoint(i, gene_model, dis_model, dataset, latent_dim, True)
+        else:
+            save_checkpoint(i, gene_model, dis_model, dataset, latent_dim, False)
+
 
 
 # Load real-data from MNIST dataset
