@@ -99,15 +99,15 @@ def generate_fake_data_gene(gene_model, latent_dim, num_samples):
     return x_fake, y_fake
 
 
-def save_fig(image, epoch, n=10):
+def save_fig(image, epoch, row_num_images=10):
     """
     Save generated "fake" image in root directory when project is located.
-    Each time is called, it will save a set of subplots with grayscale generated images.
+    Each time is called, it will save a set of subplots (size: row_num_images ** 2) with grayscale generated images.
     :return: fake dataset X and fake labels Y
     """
-    filename = "generated_plot_e%03d.png" % (epoch + 1)
-    for i in range(n * n):
-        plt.subplot(n, n, 1 + i)
+    filename = "generated_images_%03d.png" % (epoch + 1)
+    for i in range(row_num_images * row_num_images):
+        plt.subplot(row_num_images, row_num_images, 1 + i)
         plt.axis("off")
         plt.imshow(image[i, :, :, 0], cmap="gray_r")
     plt.savefig(filename)
@@ -126,7 +126,10 @@ def save_checkpoint(epoch, gene_model, dis_model, dataset, latent_dim, num_sampl
     x_fake, y_fake = generate_fake_data_gene(gene_model, latent_dim, num_samples)
     _, acc_real = dis_model.evaluate(x_real, y_real, verbose=0)
     _, acc_fake = dis_model.evaluate(x_fake, y_fake, verbose=0)
-    print("Epoch {} - Accuracy: on real data: {}% - on fake data: {}%".format(epoch, acc_real * 100, acc_fake * 100))
+    print("============================================================================")
+    print("Checkpoint saved!")
+    print("Epoch {} - Accuracy: on real data: {:.2f}% - on fake data: {:.2f}%".format(epoch, acc_real * 100, acc_fake * 100))
+    print("============================================================================")
     save_fig(x_fake, epoch)
     filename = "generator_model_%03d.h5" % (epoch + 1)
     generator_model.save(filename)
@@ -235,7 +238,7 @@ def train(gene_model, dis_model, gan_model, dataset, latent_dim, epochs=EPOCHS, 
             x_gan = generate_latent_points(latent_dim, batch_size)
             y_gan = np.ones((batch_size, 1))
             loss_gan = gan_model.train_on_batch(x_gan, y_gan)
-            print("Epoch: {} - Batch per epoch: {}/{} - Discriminator loss: {}, GAN loss: {}".format(i + 1, j + 1,
+            print("Epoch: {} - Batch per epoch: {}/{} - Discriminator loss: {:.2f}, GAN loss: {:.2f}".format(i + 1, j + 1,
                                                                                                      batches_per_epoch,
                                                                                                      discriminator_loss,
                                                                                                      loss_gan))
