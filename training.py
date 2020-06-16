@@ -81,7 +81,6 @@ def generate_latent_data(latent_dim, num_samples):
     The number of dimensions can be changed.
     :return: random latent data
     """
-
     x_input_generator = randn(latent_dim * num_samples)
     x_input_generator = x_input_generator.reshape(num_samples, latent_dim)
     return x_input_generator

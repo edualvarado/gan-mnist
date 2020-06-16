@@ -12,6 +12,10 @@ from numpy.random import randn
 from matplotlib import pyplot as plt
 from tensorflow.keras.models import load_model
 
+# ================ #
+LATENT_DIM = 100
+SAMPLES_PER_ROW = 5
+# ================ #
 
 def generate_latent_data(latent_dim, num_samples):
     """
@@ -20,7 +24,6 @@ def generate_latent_data(latent_dim, num_samples):
     The number of dimensions can be changed.
     :return: random latent data
     """
-
     x_input_generator = randn(latent_dim * num_samples)
     x_input_generator = x_input_generator.reshape(num_samples, latent_dim)
     return x_input_generator
@@ -42,8 +45,10 @@ def save_fig_inference(image, row_num_images=10):
     plt.close()
 
 
-# load model
-model = load_model('generator_model_015.h5')
-latent_points = generate_latent_data(100, 25)
-X = model.predict(latent_points)
-save_fig_inference(X, 5)
+print("[INFO] Loading pre-trained model...")
+gan_model = load_model('generator_model_015.h5')
+print("[INFO] Generating latent data...")
+x_latent = generate_latent_data(LATENT_DIM, 25)
+print("[INFO] Creating and saving prediction...")
+generated_image = gan_model.predict(x_latent)
+save_fig_inference(generated_image, SAMPLES_PER_ROW)
