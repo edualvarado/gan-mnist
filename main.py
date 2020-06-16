@@ -17,6 +17,12 @@ from numpy import vstack
 from numpy.random import rand, randint, randn
 from tensorflow.keras.datasets.mnist import load_data
 
+# ================ #
+BUFFER_SIZE = 60000
+BATCH_SIZE = 256
+EPOCHS = 100
+latent_dim = 100
+# ================ #
 
 def plot_example_data(x):
     """
@@ -24,7 +30,7 @@ def plot_example_data(x):
     :return: returns nothing
     """
     for i in range(10):
-        plt.subplot(2,5,i+1)
+        plt.subplot(2, 5, i + 1)
         plt.axis("off")
         plt.imshow(np.squeeze(x[i]), cmap="gray_r")
     plt.show()
@@ -57,185 +63,194 @@ def load_real_data():
 # Load real-data from MNIST dataset
 train_x, train_y, test_x, test_y = load_real_data()
 
-# Shuffle batches and randomize data
-BUFFER_SIZE = 60000
-BATCH_SIZE = 256
-EPOCHS = 100
 
+def generate_real_data(dataset, num_samples):
+    """
+    Prepare (shuffle) real data.
 
-
-
-# Function to randomize datasets with respective labels
-def shuffle_real_set(dataset, num_samples):
+    Obtains random (num_samples) indexes of the dataset X
+    and catches the respective labels Y
+    :return: random dataset X and labels Y
+    """
     random_positions = randint(0, dataset.shape[0], num_samples)
     random_x = dataset[random_positions]
     random_y = np.ones((num_samples, 1))
     return random_x, random_y
 
 
-# Discriminator (binary classification)
-# (28, 28, 1) -> (14, 14, 64) -> (7,7,64) -> (3136) -> (1)
-def discriminator():
-    model = Sequential()
-    model.add(Conv2D(64, (3,3), strides = (2,2), padding = "same", input_shape = (28,28,1)))
-    model.add(LeakyReLU(alpha = 0.2))
-    model.add(Dropout(0.4))
-    model.add(Conv2D(64, (3,3), strides = (2,2), padding = "same"))
-    model.add(LeakyReLU(alpha = 0.2))
-    model.add(Dropout(0.4))
-    model.add(Flatten())
-    model.add(Dense(1, activation = "sigmoid"))
-    opt = Adam(lr = 0.0002, beta_1 = 0.5)
-    model.compile(loss = "binary_crossentropy", optimizer = opt, metrics = ["accuracy"])
-    return model
-
-
-print("\n===== DISCRIMINATOR =====")
-discriminator_model = discriminator()
-#discriminator_model.summary()
-
-
-# For testing - generate fake data (noise)
-def generate_fake_data(num_samples):
-    fake_x = rand(28 * 28 * num_samples)
-    fake_x = fake_x.reshape((num_samples, 28, 28, 1)).astype("float32")
-    fake_y = np.zeros((num_samples, 1))
-    return fake_x, fake_y
-
-
-# Train discriminator (TEST)
-def train_discriminator(model, dataset, n_iterations = 100, batch_size = BATCH_SIZE):
-    for i in range(n_iterations):
-        x_real, y_real = shuffle_real_set(dataset, int(batch_size/2))
-        _, real_acc = model.train_on_batch(x_real, y_real)
-        x_fake, y_fake = generate_fake_data(int(batch_size/2))
-        _, fake_acc = model.train_on_batch(x_fake, y_fake)
-        print("i: {} -> real acc = {} - fake acc = {}".format(i, real_acc*100, fake_acc * 100))
-
-# train_discriminator(discriminator_model, train_x)
-
-'''
-Until here, we can train standalone discriminator
-'''
-
-
-# Generator (create images with each value in a range of [0,1]
-# We start from random low-res noise, then upsample to 14x14 and finally 28x28
-# TODO: Check deconvolutions and shapes
-
-def generator(latent_dim):
-    model = Sequential()
-    n_nodes = 128 * 7 * 7
-    model.add(Dense(n_nodes, input_dim = latent_dim))
-    model.add(LeakyReLU(alpha = 0.2))
-    model.add(Reshape((7, 7, 128)))
-    model.add(Conv2DTranspose(128, (4, 4), strides = (2, 2), padding = "same"))
-    model.add(LeakyReLU(alpha = 0.2))
-    model.add(Conv2DTranspose(128, (4, 4), strides = (2, 2), padding = "same"))
-    model.add(LeakyReLU(alpha = 0.2))
-    model.add(Conv2D(1, (7, 7), activation = "sigmoid", padding = "same"))
-    return model
-
-
-print("\n===== GENERATOR =====")
-latent_dim = 100
-generator_model = generator(latent_dim)
-#generator_model.summary()
-
 def generate_latent_points(latent_dim, num_samples):
+    """
+    Prepare latent dimensions for Generator.
+    TODO: Add explanation
+    :return: random latent dimensions
+    """
+
     x_input_generator = randn(latent_dim * num_samples)
     x_input_generator = x_input_generator.reshape(num_samples, latent_dim)
     return x_input_generator
 
-# For testing - generate fake data using generator (noise)
+
 def generate_fake_data_gen(generator_model, latent_dim, num_samples):
-    x_input = generate_latent_points(latent_dim, num_samples)
-    fake_x = generator_model.predict(x_input)
-    fake_y = np.zeros((num_samples, 1))
-    return fake_x, fake_y
-
-# Test to see fake data
-num_samples = 20
-fake_x, fake_y = generate_fake_data_gen(generator_model, latent_dim, num_samples)
-
-'''
-for i in range(num_samples):
-    plt.subplot (4, 5, i+1)
-    plt.axis("off")
-    plt.imshow(fake_x[i, :, :, 0], cmap = "gray_r")
-plt.show()
-'''
+    """
+    Generate fake data using the Generator from random noise (latent space).
+    This data is labelled as "zero" since we know it is fake.
+    :return: fake dataset X and fake labels Y
+    """
+    x_latent = generate_latent_points(latent_dim, num_samples)
+    x_fake = generator_model.predict(x_latent)
+    y_fake = np.zeros((num_samples, 1))
+    return x_fake, y_fake
 
 
-# Define GAN together
-def gan(generator_model, discriminator_model):
-    discriminator_model.trainable = False  # freeze discriminator
-    model = Sequential()
-    model.add(generator_model)
-    model.add(discriminator_model)
-    opt = Adam(lr=0.0002, beta_1 = 0.5)
-    model.compile(loss = "binary_crossentropy", optimizer = opt)
-    return model
-
-gan_model = gan(generator_model, discriminator_model)
-gan_model.summary()
-
-def train_gan(generator_model, discriminator_model, gan_model, dataset, latent_dim, epochs = EPOCHS, batches = BATCH_SIZE):
-    batches_per_epoch = int(dataset.shape[0] / batches)
-    half_batch = int(batches / 2)
-    for i in range(epochs):
-        for j in range(batches_per_epoch):
-            x_real, y_real = shuffle_real_set(dataset, half_batch)
-            x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, half_batch)
-            x_training, y_training = np.vstack((x_real, x_fake)), vstack((y_real, y_fake))
-            discriminator_loss, _ = discriminator_model.train_on_batch(x_training, y_training)
-            x_gan = generate_latent_points(latent_dim, batches)
-            y_gan = np.ones((batches, 1))
-            loss_gan = gan_model.train_on_batch(x_gan, y_gan)
-            print("Epoch: {}, Batch per epoch: {}/{}, Discriminator loss: {}, GAN loss: {}".format(i+1, j+1, batches_per_epoch, discriminator_loss, loss_gan))
-
-# Function to save generated image
-def save_fig(image, epoch, n = 10):
-    for i in range(n*n):
-        plt.subplot(n,n,1+i)
-        plt.axis("off")
-        plt.imshow(image[i,:,:,0], cmap = "gray_r")
+def save_fig(image, epoch, n=10):
+    """
+    Save generated "fake" image in root directory when project is located.
+    Each time is called, it will save a set of subplots with grayscale generated images.
+    :return: fake dataset X and fake labels Y
+    """
     filename = "generated_plot_e%03d.png" % (epoch + 1)
+    for i in range(n * n):
+        plt.subplot(n, n, 1 + i)
+        plt.axis("off")
+        plt.imshow(image[i, :, :, 0], cmap="gray_r")
     plt.savefig(filename)
     plt.close()
 
-# Create function to evaluate each X epochs
-def perforance(epoch, generator_model, discriminator_model, dataset, latent_dim, n_samples = 100):
-    x_real, y_real = shuffle_real_set(dataset, n_samples)
-    x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, n_samples)
-    _, acc_real = discriminator_model.evaluate(x_real, y_real, verbose = 0)
-    _, acc_fake = discriminator_model.evaluate(x_fake, y_fake, verbose = 0)
-    print("Accuracy real: {} - fake: {}".format(acc_real*100, acc_fake*100))
+
+def save_checkpoint(epoch, generator_model, discriminator_model, dataset, latent_dim, num_samples=100):
+    """
+    Each time is called, it prints accuracies and save checkpoint of the network (.h5).
+    First, generate both, real data from MNIST dataset and fake data from Generator.
+    Then, it performs evaluation for the Discriminator with both, printing its accuracy.
+    Finally, saves the model at that point.
+    :return: returns nothing
+    """
+    x_real, y_real = generate_real_data(dataset, num_samples)
+    x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, num_samples)
+    _, acc_real = discriminator_model.evaluate(x_real, y_real, verbose=0)
+    _, acc_fake = discriminator_model.evaluate(x_fake, y_fake, verbose=0)
+    print("Epoch {} - Accuracy: on real data: {}% - on fake data: {}%".format(epoch, acc_real * 100, acc_fake * 100))
     save_fig(x_fake, epoch)
     filename = "generator_model_%03d.h5" % (epoch + 1)
     generator_model.save(filename)
 
-# Final train
-def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, epochs = EPOCHS, batches = BATCH_SIZE):
-    batches_per_epoch = int(dataset.shape[0] / batches)
-    half_batch = int(batches / 2)
+
+def discriminator():
+    """
+    Create discriminator model.
+
+    Take an image, which can be real or generated by the Generator (fake).
+    Binary Classification (cross-entropy loss)
+    (28, 28, 1) -> Conv2D -> (14, 14, 64) -> Conv2D -> (7,7,64) -> Flatten -> (3136) -> Dense -> (1)
+    Optimizer: ADAM
+    :return: Discriminator model
+    """
+    model = Sequential()
+    model.add(Conv2D(64, (3, 3), strides=(2, 2), padding="same", input_shape=(28, 28, 1)))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.4))
+    model.add(Conv2D(64, (3, 3), strides=(2, 2), padding="same"))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.4))
+    model.add(Flatten())
+    model.add(Dense(1, activation="sigmoid"))
+    opt = Adam(lr=0.0002, beta_1=0.5)
+    model.compile(loss="binary_crossentropy", optimizer=opt, metrics=["accuracy"])
+    return model
+
+
+print("\n===== Initialize Discriminator =====")
+discriminator_model = discriminator()
+# discriminator_model.summary()
+
+
+def generator(latent_dim):
+    """
+    Create Generator model.
+    From latent space (gaussian noise initially).
+    We start from random low-res noise, then up-sample to 14x14 and finally to 28x28.
+    We do not need to train the Generator in a standalone way.
+    TODO: Add explanation
+    :return: Generator model
+    """
+    model = Sequential()
+    n_nodes = 128 * 7 * 7
+    model.add(Dense(n_nodes, input_dim=latent_dim))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Reshape((7, 7, 128)))
+    model.add(Conv2DTranspose(128, (4, 4), strides=(2, 2), padding="same"))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Conv2DTranspose(128, (4, 4), strides=(2, 2), padding="same"))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Conv2D(1, (7, 7), activation="sigmoid", padding="same"))
+    return model
+
+
+print("\n===== Initialize Generator =====")
+latent_dim = 100
+generator_model = generator(latent_dim)
+# generator_model.summary()
+
+
+# Define GAN together
+def gan(generator_model, discriminator_model):
+    """
+    Create GAN model, combining the Discriminator and Generator.
+    We freeze discriminator, because we only want to update the Generator weights.
+    TODO: Add explanation
+    :return: GAN model (Discriminator + Generator)
+    """
+    discriminator_model.trainable = False  # freeze discriminator
+    model = Sequential()
+    model.add(generator_model)
+    model.add(discriminator_model)
+    opt = Adam(lr=0.0002, beta_1=0.5)
+    model.compile(loss="binary_crossentropy", optimizer=opt)
+    return model
+
+
+print("\n===== Initialize GAN =====")
+gan_model = gan(generator_model, discriminator_model)
+gan_model.summary()
+
+
+def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, epochs=EPOCHS, batch_size=BATCH_SIZE):
+    """
+    It trains the GAN model.
+
+    First, it calculates how many batches per epoch we have based on the size of the dataset and size of the batch.
+    We will train with half real data and half fake data, therefore we divide it by two.
+    For each of the batches at each epoch:
+    1- Generate half-real data from MNIST and half-fake data from current version of Generator model. Merge data.
+    2- Update Discriminator weights (on batch) using this data (fake and real) and print accuracy.
+    3- We need to prepare input for the Generator in a recursive way (data and labels).
+    4- Update Generator weights using the remaining batch and error caused by the Discriminator.
+    5- Save checkpoint each 10 epochs.
+    TODO: Add explanation.
+    :return: GAN model (Discriminator + Generator)
+    """
+    batches_per_epoch = int(dataset.shape[0] / batch_size)
+    half_batch = int(batch_size / 2)
     for i in range(epochs):
         for j in range(batches_per_epoch):
-            x_real, y_real = shuffle_real_set(dataset, half_batch)
+            x_real, y_real = generate_real_data(dataset, half_batch)
             x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, half_batch)
             x_training, y_training = np.vstack((x_real, x_fake)), vstack((y_real, y_fake))
             discriminator_loss, _ = discriminator_model.train_on_batch(x_training, y_training)
-            x_gan = generate_latent_points(latent_dim, batches)
-            y_gan = np.ones((batches, 1))
+            x_gan = generate_latent_points(latent_dim, batch_size)
+            y_gan = np.ones((batch_size, 1))
             loss_gan = gan_model.train_on_batch(x_gan, y_gan)
-            print("Epoch: {}, Batch per epoch: {}/{}, Discriminator loss: {}, GAN loss: {}".format(i+1, j+1, batches_per_epoch, discriminator_loss, loss_gan))
-        if (i+1) % 10 == 0:
-            perforance(i, generator_model, discriminator_model, dataset, latent_dim)
+            print("Epoch: {} - Batch per epoch: {}/{} - Discriminator loss: {}, GAN loss: {}".format(i + 1, j + 1,
+                                                                                                     batches_per_epoch,
+                                                                                                     discriminator_loss,
+                                                                                                     loss_gan))
+        if (i + 1) % 10 == 0:
+            save_checkpoint(i, generator_model, discriminator_model, dataset, latent_dim)
 
 
 # Training
-latent_dim = 100
 train(generator_model, discriminator_model, gan_model, train_x, latent_dim)
+
 
 # TODO:
 # - Encapsulation
@@ -243,3 +258,46 @@ train(generator_model, discriminator_model, gan_model, train_x, latent_dim)
 # - Check (briefly) hyperparameters
 # - Evaluate more often
 # - Save model before going to C++
+
+
+"""
+For testing:
+Generating fake data without Generator (noise).
+Training Discriminator as standalone.
+"""
+
+"""
+def generate_fake_data(num_samples):
+    fake_x = rand(28 * 28 * num_samples)
+    fake_x = fake_x.reshape((num_samples, 28, 28, 1)).astype("float32")
+    fake_y = np.zeros((num_samples, 1))
+    return fake_x, fake_y
+
+
+num_samples = 20
+fake_x, fake_y = generate_fake_data(generator_model, latent_dim, num_samples)
+
+
+for i in range(num_samples):
+    plt.subplot (4, 5, i+1)
+    plt.axis("off")
+    plt.imshow(fake_x[i, :, :, 0], cmap = "gray_r")
+plt.show()
+
+
+# Train discriminator (standalone)
+def train_discriminator(model, dataset, n_iterations=100, batch_size=BATCH_SIZE):
+    for i in range(n_iterations):
+        x_real, y_real = generate_real_data(dataset, int(batch_size / 2))
+        _, real_acc = model.train_on_batch(x_real, y_real)
+        x_fake, y_fake = generate_fake_data(int(batch_size / 2))
+        _, fake_acc = model.train_on_batch(x_fake, y_fake)
+        print("i: {} -> real acc = {} - fake acc = {}".format(i, real_acc * 100, fake_acc * 100))
+
+
+train_discriminator(discriminator_model, train_x)
+"""
+
+
+
+
