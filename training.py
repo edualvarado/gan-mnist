@@ -8,6 +8,8 @@ Author: Eduardo Alvarado
 Task: In this assignment, I will create a GAN in order to generate novel numbers based on the MNIST dataset.
 """
 
+import os
+from pathlib import Path
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, LeakyReLU, Dropout, Flatten, Dense, Reshape, Conv2DTranspose
 from tensorflow.keras.optimizers import Adam
@@ -107,7 +109,9 @@ def save_fig(image, epoch, row_num_images=10):
     :return: fake dataset X and fake labels Y
     """
 
-    filename = "generated_images_%03d.png" % (epoch + 1)
+    Path("/generated_images_per_epoch").mkdir(parents=True, exist_ok=True)
+    filename = "/generated_images_per_epoch/generated_images_%03d.png" % (epoch + 1)
+
     for i in range(row_num_images * row_num_images):
         plt.subplot(row_num_images, row_num_images, 1 + i)
         plt.axis("off")
