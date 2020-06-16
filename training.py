@@ -136,8 +136,8 @@ def save_checkpoint(epoch, gene_model, dis_model, dataset, latent_dim, save_mode
                                                                                       acc_fake * 100))
     save_fig(x_fake, epoch)
     if save_model:
-        print("Model saved!")
-        filename = "generator_model_%03d.h5" % (epoch + 1)
+        print("Model (.h5) saved!")
+        filename = "keras_models/generator_model_%03d.h5" % (epoch + 1)
         gene_model.save(filename)
     print("============================================================================")
 
@@ -239,7 +239,7 @@ def train(gene_model, dis_model, gans_model, dataset, latent_dim, epochs=EPOCHS,
     """
     batches_per_epoch = int(dataset.shape[0] / batch_size)
     half_batch = int(batch_size / 2)
-    epoch_checkpoint = 5
+    epoch_checkpoint = 10
     for i in range(epochs):
         for j in range(batches_per_epoch):
             x_real, y_real = generate_real_data(dataset, half_batch)
@@ -263,6 +263,10 @@ def train(gene_model, dis_model, gans_model, dataset, latent_dim, epochs=EPOCHS,
 # Create folder for images
 print("[INFO] Create folder for saving images during training...")
 Path("generated_images_training").mkdir(parents=True, exist_ok=True)
+
+# Create folder for Keras models
+print("[INFO] Create folder for saving Keras models during training...")
+Path("keras_models").mkdir(parents=True, exist_ok=True)
 
 # Load real-data from MNIST dataset
 print("[INFO] Loading data...")
