@@ -20,10 +20,8 @@ from tensorflow.keras.datasets.mnist import load_data
 
 # ================ #
 BATCH_SIZE = 256
-EPOCHS = 100
+EPOCHS = 1
 LATENT_DIM = 100
-
-
 # ================ #
 
 
@@ -168,8 +166,6 @@ def discriminator():
 
 print("\n===== Initialize Discriminator =====")
 discriminator_model = discriminator()
-
-
 # discriminator_model.summary()
 
 
@@ -196,8 +192,6 @@ def generator(latent_dim):
 
 print("\n===== Initialize Generator =====")
 generator_model = generator(LATENT_DIM)
-
-
 # generator_model.summary()
 
 
@@ -259,6 +253,11 @@ def train(gene_model, dis_model, gans_model, dataset, latent_dim, epochs=EPOCHS,
         else:
             save_checkpoint(i, gene_model, dis_model, dataset, latent_dim, False)
 
+    print("Training has finished =================================================================")
+    gene_model.save("generator_model_final")
+    print("Final generator model (.pb) saved!")
+    print("=======================================================================================")
+
 
 # Create folder for images
 print("[INFO] Create folder for saving images during training...")
@@ -275,6 +274,7 @@ train_x, _, _, _ = load_real_data()
 # Training
 print("[INFO] Training...")
 train(generator_model, discriminator_model, gan_model, train_x, LATENT_DIM)
+
 
 """
 For testing:
