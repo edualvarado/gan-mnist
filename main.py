@@ -103,8 +103,10 @@ def save_fig(image, epoch, row_num_images=10):
     """
     Save generated "fake" image in root directory when project is located.
     Each time is called, it will save a set of subplots (size: row_num_images ** 2) with grayscale generated images.
+    Function used as well for the inference.
     :return: fake dataset X and fake labels Y
     """
+
     filename = "generated_images_%03d.png" % (epoch + 1)
     for i in range(row_num_images * row_num_images):
         plt.subplot(row_num_images, row_num_images, 1 + i)
@@ -128,11 +130,12 @@ def save_checkpoint(epoch, gene_model, dis_model, dataset, latent_dim, num_sampl
     _, acc_fake = dis_model.evaluate(x_fake, y_fake, verbose=0)
     print("============================================================================")
     print("Checkpoint saved!")
-    print("Epoch {} - Accuracy: on real data: {:.2f}% - on fake data: {:.2f}%".format(epoch, acc_real * 100, acc_fake * 100))
+    print("Epoch {} - Accuracy: on real data: {:.2f}% - on fake data: {:.2f}%".format(epoch, acc_real * 100,
+                                                                                      acc_fake * 100))
     print("============================================================================")
     save_fig(x_fake, epoch)
     filename = "generator_model_%03d.h5" % (epoch + 1)
-    generator_model.save(filename)
+    gene_model.save(filename)
 
 
 def discriminator():
@@ -145,7 +148,7 @@ def discriminator():
     Optimizer: ADAM
     :return: Discriminator model
     """
-    model = Sequential(name="Discriminator Model")
+    model = Sequential()
     model.add(Conv2D(64, (3, 3), strides=(2, 2), padding="same", input_shape=(28, 28, 1)))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.4))
@@ -172,7 +175,7 @@ def generator(latent_dim):
     We do not need to train the Generator in a standalone way.
     :return: Generator model
     """
-    model = Sequential(name="Generator Model")
+    model = Sequential()
     num_nodes = 128 * 7 * 7
     model.add(Dense(num_nodes, input_dim=latent_dim))
     model.add(LeakyReLU(alpha=0.2))
@@ -199,7 +202,7 @@ def gan(gene_model, dis_model):
     :return: GAN model (Discriminator + Generator)
     """
     dis_model.trainable = False  # freeze discriminator
-    model = Sequential(name="GAN Model")
+    model = Sequential()
     model.add(gene_model)
     model.add(dis_model)
     opt = Adam(lr=0.0002, beta_1=0.5)
