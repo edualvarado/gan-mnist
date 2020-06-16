@@ -3,6 +3,7 @@
 Assignment - InstaLOD
 #####################
 Deep Convolutional Generative Adversarial Network (GANs)
+File: training.py
 Author: Eduardo Alvarado
 Task: In this assignment, I will create a GAN in order to generate novel numbers based on the MNIST dataset.
 """
@@ -73,12 +74,12 @@ def generate_real_data(dataset, num_samples):
     return random_x, random_y
 
 
-def generate_latent_points(latent_dim, num_samples):
+def generate_latent_data(latent_dim, num_samples):
     """
     Prepare latent dimensions for Generator.
     It creates random gaussian values for "latent_dim" dimensions.
     The number of dimensions can be changed.
-    :return: random latent dimensions
+    :return: random latent data
     """
 
     x_input_generator = randn(latent_dim * num_samples)
@@ -93,7 +94,7 @@ def generate_fake_data_gene(gene_model, latent_dim, num_samples):
     This data is labelled as "zero" since we know it is fake.
     :return: fake dataset X and fake labels Y
     """
-    x_latent = generate_latent_points(latent_dim, num_samples)
+    x_latent = generate_latent_data(latent_dim, num_samples)
     x_fake = gene_model.predict(x_latent)
     y_fake = np.zeros((num_samples, 1))
     return x_fake, y_fake
@@ -238,7 +239,7 @@ def train(gene_model, dis_model, gan_model, dataset, latent_dim, epochs=EPOCHS, 
             x_fake, y_fake = generate_fake_data_gene(gene_model, latent_dim, half_batch)
             x_training, y_training = np.vstack((x_real, x_fake)), vstack((y_real, y_fake))
             discriminator_loss, _ = dis_model.train_on_batch(x_training, y_training)
-            x_gan = generate_latent_points(latent_dim, batch_size)
+            x_gan = generate_latent_data(latent_dim, batch_size)
             y_gan = np.ones((batch_size, 1))
             loss_gan = gan_model.train_on_batch(x_gan, y_gan)
             print("Epoch: {} - Batch per epoch: {}/{} - Discriminator loss: {:.2f}, GAN loss: {:.2f}".format(i + 1, j + 1,
