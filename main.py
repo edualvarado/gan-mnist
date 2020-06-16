@@ -76,7 +76,8 @@ def generate_real_data(dataset, num_samples):
 def generate_latent_points(latent_dim, num_samples):
     """
     Prepare latent dimensions for Generator.
-    TODO: Add explanation
+    It creates random gaussian values for "latent_dim" dimensions.
+    The number of dimensions can be changed.
     :return: random latent dimensions
     """
 
@@ -85,9 +86,10 @@ def generate_latent_points(latent_dim, num_samples):
     return x_input_generator
 
 
-def generate_fake_data_gen(gene_model, latent_dim, num_samples):
+def generate_fake_data_gene(gene_model, latent_dim, num_samples):
     """
-    Generate fake data using the Generator from random noise (latent space).
+    It performs inference for the Generator model.
+    Generate fake data using the Generator (initially from gaussian random noise, latent space).
     This data is labelled as "zero" since we know it is fake.
     :return: fake dataset X and fake labels Y
     """
@@ -121,7 +123,7 @@ def save_checkpoint(epoch, gene_model, dis_model, dataset, latent_dim, num_sampl
     :return: returns nothing
     """
     x_real, y_real = generate_real_data(dataset, num_samples)
-    x_fake, y_fake = generate_fake_data_gen(gene_model, latent_dim, num_samples)
+    x_fake, y_fake = generate_fake_data_gene(gene_model, latent_dim, num_samples)
     _, acc_real = dis_model.evaluate(x_real, y_real, verbose=0)
     _, acc_fake = dis_model.evaluate(x_fake, y_fake, verbose=0)
     print("Epoch {} - Accuracy: on real data: {}% - on fake data: {}%".format(epoch, acc_real * 100, acc_fake * 100))
@@ -140,7 +142,7 @@ def discriminator():
     Optimizer: ADAM
     :return: Discriminator model
     """
-    model = Sequential()
+    model = Sequential(name="Discriminator Model")
     model.add(Conv2D(64, (3, 3), strides=(2, 2), padding="same", input_shape=(28, 28, 1)))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.4))
@@ -162,13 +164,12 @@ discriminator_model = discriminator()
 def generator(latent_dim):
     """
     Create Generator model.
-    From latent space (gaussian noise initially).
-    We start from random low-res noise, then up-sample to 14x14 and finally to 28x28.
+    From latent space (initially from gaussian random noise, latent space).
+    We start from random low-res noise, then up-sample to 2D array (14x14 and finally to 28x28).
     We do not need to train the Generator in a standalone way.
-    TODO: Add explanation
     :return: Generator model
     """
-    model = Sequential()
+    model = Sequential(name="Generator Model")
     num_nodes = 128 * 7 * 7
     model.add(Dense(num_nodes, input_dim=latent_dim))
     model.add(LeakyReLU(alpha=0.2))
@@ -190,12 +191,12 @@ generator_model = generator(LATENT_DIM)
 def gan(gene_model, dis_model):
     """
     Create GAN model, combining the Discriminator and Generator.
-    We freeze discriminator, because we only want to update the Generator weights.
-    TODO: Add explanation
+    We freeze discriminator, not not over-train it.
+    We only want to update the Generator weights based on the Discriminator error.
     :return: GAN model (Discriminator + Generator)
     """
     dis_model.trainable = False  # freeze discriminator
-    model = Sequential()
+    model = Sequential(name="GAN Model")
     model.add(gene_model)
     model.add(dis_model)
     opt = Adam(lr=0.0002, beta_1=0.5)
@@ -208,7 +209,7 @@ gan_model = gan(generator_model, discriminator_model)
 gan_model.summary()
 
 
-def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, epochs=EPOCHS, batch_size=BATCH_SIZE):
+def train(gene_model, dis_model, gan_model, dataset, latent_dim, epochs=EPOCHS, batch_size=BATCH_SIZE):
     """
     It trains the GAN model.
 
@@ -218,19 +219,19 @@ def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, 
     1- Generate half-real data from MNIST and half-fake data from current version of Generator model. Merge data.
     2- Update Discriminator weights (on batch) using this data (fake and real) and print accuracy.
     3- We need to prepare input for the Generator in a recursive way (data and labels).
-    4- Update Generator weights using the remaining batch and error caused by the Discriminator.
-    5- Save checkpoint each 10 epochs.
-    TODO: Add explanation.
+    4- Update Generator weights with the combined model and error caused by the Discriminator.
+    5- Save checkpoint each X epochs.
     :return: GAN model (Discriminator + Generator)
     """
     batches_per_epoch = int(dataset.shape[0] / batch_size)
     half_batch = int(batch_size / 2)
+    epoch_checkpoint = 5
     for i in range(epochs):
         for j in range(batches_per_epoch):
             x_real, y_real = generate_real_data(dataset, half_batch)
-            x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, half_batch)
+            x_fake, y_fake = generate_fake_data_gene(gene_model, latent_dim, half_batch)
             x_training, y_training = np.vstack((x_real, x_fake)), vstack((y_real, y_fake))
-            discriminator_loss, _ = discriminator_model.train_on_batch(x_training, y_training)
+            discriminator_loss, _ = dis_model.train_on_batch(x_training, y_training)
             x_gan = generate_latent_points(latent_dim, batch_size)
             y_gan = np.ones((batch_size, 1))
             loss_gan = gan_model.train_on_batch(x_gan, y_gan)
@@ -238,8 +239,8 @@ def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, 
                                                                                                      batches_per_epoch,
                                                                                                      discriminator_loss,
                                                                                                      loss_gan))
-        if (i + 1) % 10 == 0:
-            save_checkpoint(i, generator_model, discriminator_model, dataset, latent_dim)
+        if (i + 1) % epoch_checkpoint == 0:
+            save_checkpoint(i, gene_model, dis_model, dataset, latent_dim)
 
 
 # Load real-data from MNIST dataset
