@@ -15,22 +15,29 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy import vstack
 from numpy.random import rand, randint, randn
-
-# MNIST dataset - define sets and print information
 from tensorflow.keras.datasets.mnist import load_data
-(train_x, train_y), (test_x, test_y) = load_data()
-print("Before processing")
-print("Train X shape: {} - Train Y shape: {}".format(train_x.shape, train_y.shape))
-print("Test X shape: {} - Test Y shape: {}".format(test_x.shape, test_y.shape))
 
-# Data not normalized - Reshape (add grayscale dim) and normalize here
-train_x = train_x.reshape(train_x.shape[0], 28, 28, 1).astype("float32")
-train_x = train_x / 255.0
-test_x = test_x.reshape(test_x.shape[0], 28, 28, 1).astype("float32")
-test_x = test_x / 255.0
-print("After processing")
-print("Train X shape: {} - Train Y shape: {}".format(train_x.shape, train_y.shape))
-print("Test X shape: {} - Test Y shape: {}".format(test_x.shape, test_y.shape))
+
+def load_data():
+    """
+    Load MNIST data.
+
+    Load train and test datasets, reshape
+    train-sets (include grayscale channel) and
+    normalize between [0,1].
+    :return: training data/labels and test data/labels
+    """
+    (train_x, train_y), (test_x, test_y) = load_data()
+
+    # Data not normalized - Reshape (add grayscale dim) and normalize here
+    train_x = train_x.reshape(train_x.shape[0], 28, 28, 1).astype("float32")
+    train_x = train_x / 255.0
+    test_x = test_x.reshape(test_x.shape[0], 28, 28, 1).astype("float32")
+    test_x = test_x / 255.0
+    print("After processing")
+    print("Train X shape: {} - Train Y shape: {}".format(train_x.shape, train_y.shape))
+    print("Test X shape: {} - Test Y shape: {}".format(test_x.shape, test_y.shape))
+    return train_x, train_y, test_x, test_y
 
 # Plotting numbers for testing
 '''
