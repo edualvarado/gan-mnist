@@ -10,13 +10,14 @@ Task: In this assignment, I will create a GAN in order to generate novel numbers
 from tensorflow.keras.models import load_model
 import numpy as np
 import matplotlib.pyplot as plt
-from main import generate_latent_points
+from training import generate_latent_points
 
 # ================ #
 LATENT_DIM = 100
 SAMPLES = 10
-MODEL = "example"
+MODEL = "generator_model_015.h5"
 # ================ #
+
 
 def save_fig_inference(image, samples):
     """
@@ -31,6 +32,7 @@ def save_fig_inference(image, samples):
     plt.savefig(filename)
     plt.close()
 
+print("INFERING")
 gan_model = load_model(MODEL)
 generator_input = generate_latent_points(LATENT_DIM, SAMPLES)
 generated_images = gan_model.predict(generator_input)
