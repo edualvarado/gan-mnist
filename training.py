@@ -250,9 +250,11 @@ def train(gene_model, dis_model, gan_model, dataset, latent_dim, epochs=EPOCHS, 
 
 
 # Load real-data from MNIST dataset
+print("[INFO] Loading data...")
 train_x, _, _, _ = load_real_data()
 
 # Training
+print("[INFO] Training...")
 train(generator_model, discriminator_model, gan_model, train_x, LATENT_DIM)
 
 
