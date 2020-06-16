@@ -7,22 +7,21 @@ Author: Eduardo Alvarado
 Task: In this assignment, I will create a GAN in order to generate novel numbers based on the MNIST dataset.
 """
 
-import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, LeakyReLU, Dropout, Flatten, Dense, Reshape, Conv2DTranspose
 from tensorflow.keras.optimizers import Adam
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import vstack
-from numpy.random import rand, randint, randn
+from numpy.random import randint, randn
 from tensorflow.keras.datasets.mnist import load_data
 
 # ================ #
-BUFFER_SIZE = 60000
 BATCH_SIZE = 256
 EPOCHS = 100
-latent_dim = 100
+LATENT_DIM = 100
 # ================ #
+
 
 def plot_example_data(x):
     """
@@ -45,23 +44,19 @@ def load_real_data():
     normalize between [0,1].
     :return: training data/labels and test data/labels
     """
-    (train_x, train_y), (test_x, test_y) = load_data()
+    (x_train, y_train), (x_test, y_test) = load_data()
 
     # Data not normalized - Reshape (add grayscale dim) and normalize here
-    train_x = train_x.reshape(train_x.shape[0], 28, 28, 1).astype("float32")
-    train_x = train_x / 255.0
-    test_x = test_x.reshape(test_x.shape[0], 28, 28, 1).astype("float32")
-    test_x = test_x / 255.0
+    x_train = x_train.reshape(x_train.shape[0], 28, 28, 1).astype("float32")
+    x_train = x_train / 255.0
+    x_test = x_test.reshape(x_test.shape[0], 28, 28, 1).astype("float32")
+    x_test = x_test / 255.0
     print("After processing")
-    print("Train X shape: {} - Train Y shape: {}".format(train_x.shape, train_y.shape))
-    print("Test X shape: {} - Test Y shape: {}".format(test_x.shape, test_y.shape))
+    print("Train X shape: {} - Train Y shape: {}".format(x_train.shape, y_train.shape))
+    print("Test X shape: {} - Test Y shape: {}".format(x_test.shape, y_test.shape))
     # Plot example MNIST data
-    plot_example_data(train_x)
-    return train_x, train_y, test_x, test_y
-
-
-# Load real-data from MNIST dataset
-train_x, train_y, test_x, test_y = load_real_data()
+    plot_example_data(x_train)
+    return x_train, y_train, x_test, y_test
 
 
 def generate_real_data(dataset, num_samples):
@@ -90,14 +85,14 @@ def generate_latent_points(latent_dim, num_samples):
     return x_input_generator
 
 
-def generate_fake_data_gen(generator_model, latent_dim, num_samples):
+def generate_fake_data_gen(gene_model, latent_dim, num_samples):
     """
     Generate fake data using the Generator from random noise (latent space).
     This data is labelled as "zero" since we know it is fake.
     :return: fake dataset X and fake labels Y
     """
     x_latent = generate_latent_points(latent_dim, num_samples)
-    x_fake = generator_model.predict(x_latent)
+    x_fake = gene_model.predict(x_latent)
     y_fake = np.zeros((num_samples, 1))
     return x_fake, y_fake
 
@@ -117,7 +112,7 @@ def save_fig(image, epoch, n=10):
     plt.close()
 
 
-def save_checkpoint(epoch, generator_model, discriminator_model, dataset, latent_dim, num_samples=100):
+def save_checkpoint(epoch, gene_model, dis_model, dataset, latent_dim, num_samples=100):
     """
     Each time is called, it prints accuracies and save checkpoint of the network (.h5).
     First, generate both, real data from MNIST dataset and fake data from Generator.
@@ -126,9 +121,9 @@ def save_checkpoint(epoch, generator_model, discriminator_model, dataset, latent
     :return: returns nothing
     """
     x_real, y_real = generate_real_data(dataset, num_samples)
-    x_fake, y_fake = generate_fake_data_gen(generator_model, latent_dim, num_samples)
-    _, acc_real = discriminator_model.evaluate(x_real, y_real, verbose=0)
-    _, acc_fake = discriminator_model.evaluate(x_fake, y_fake, verbose=0)
+    x_fake, y_fake = generate_fake_data_gen(gene_model, latent_dim, num_samples)
+    _, acc_real = dis_model.evaluate(x_real, y_real, verbose=0)
+    _, acc_fake = dis_model.evaluate(x_fake, y_fake, verbose=0)
     print("Epoch {} - Accuracy: on real data: {}% - on fake data: {}%".format(epoch, acc_real * 100, acc_fake * 100))
     save_fig(x_fake, epoch)
     filename = "generator_model_%03d.h5" % (epoch + 1)
@@ -174,8 +169,8 @@ def generator(latent_dim):
     :return: Generator model
     """
     model = Sequential()
-    n_nodes = 128 * 7 * 7
-    model.add(Dense(n_nodes, input_dim=latent_dim))
+    num_nodes = 128 * 7 * 7
+    model.add(Dense(num_nodes, input_dim=latent_dim))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Reshape((7, 7, 128)))
     model.add(Conv2DTranspose(128, (4, 4), strides=(2, 2), padding="same"))
@@ -187,23 +182,22 @@ def generator(latent_dim):
 
 
 print("\n===== Initialize Generator =====")
-latent_dim = 100
-generator_model = generator(latent_dim)
+generator_model = generator(LATENT_DIM)
 # generator_model.summary()
 
 
 # Define GAN together
-def gan(generator_model, discriminator_model):
+def gan(gene_model, dis_model):
     """
     Create GAN model, combining the Discriminator and Generator.
     We freeze discriminator, because we only want to update the Generator weights.
     TODO: Add explanation
     :return: GAN model (Discriminator + Generator)
     """
-    discriminator_model.trainable = False  # freeze discriminator
+    dis_model.trainable = False  # freeze discriminator
     model = Sequential()
-    model.add(generator_model)
-    model.add(discriminator_model)
+    model.add(gene_model)
+    model.add(dis_model)
     opt = Adam(lr=0.0002, beta_1=0.5)
     model.compile(loss="binary_crossentropy", optimizer=opt)
     return model
@@ -248,8 +242,11 @@ def train(generator_model, discriminator_model, gan_model, dataset, latent_dim, 
             save_checkpoint(i, generator_model, discriminator_model, dataset, latent_dim)
 
 
+# Load real-data from MNIST dataset
+train_x, _, _, _ = load_real_data()
+
 # Training
-train(generator_model, discriminator_model, gan_model, train_x, latent_dim)
+train(generator_model, discriminator_model, gan_model, train_x, LATENT_DIM)
 
 
 # TODO:
