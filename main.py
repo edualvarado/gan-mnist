@@ -18,7 +18,19 @@ from numpy.random import rand, randint, randn
 from tensorflow.keras.datasets.mnist import load_data
 
 
-def load_data():
+def plot_example_data(x):
+    """
+    Subplot example grayscale MNIST data with dimensions (28, 28, 1)
+    :return: returns nothing
+    """
+    for i in range(10):
+        plt.subplot(2,5,i+1)
+        plt.axis("off")
+        plt.imshow(np.squeeze(x[i]), cmap="gray_r")
+    plt.show()
+
+
+def load_real_data():
     """
     Load MNIST data.
 
@@ -37,21 +49,20 @@ def load_data():
     print("After processing")
     print("Train X shape: {} - Train Y shape: {}".format(train_x.shape, train_y.shape))
     print("Test X shape: {} - Test Y shape: {}".format(test_x.shape, test_y.shape))
+    # Plot example MNIST data
+    plot_example_data(train_x)
     return train_x, train_y, test_x, test_y
 
-# Plotting numbers for testing
-'''
-for i in range(10):
-    plt.subplot(2,5,i+1)
-    plt.axis("off")
-    plt.imshow(train_x[i], cmap="gray_r")
-plt.show()
-'''
+
+# Load real-data from MNIST dataset
+train_x, train_y, test_x, test_y = load_real_data()
 
 # Shuffle batches and randomize data
 BUFFER_SIZE = 60000
 BATCH_SIZE = 256
 EPOCHS = 100
+
+
 
 
 # Function to randomize datasets with respective labels
