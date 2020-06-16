@@ -8,7 +8,6 @@ Author: Eduardo Alvarado
 Task: In this assignment, I will create a GAN in order to generate novel numbers based on the MNIST dataset.
 """
 
-import os
 from pathlib import Path
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, LeakyReLU, Dropout, Flatten, Dense, Reshape, Conv2DTranspose
@@ -23,6 +22,8 @@ from tensorflow.keras.datasets.mnist import load_data
 BATCH_SIZE = 256
 EPOCHS = 100
 LATENT_DIM = 100
+
+
 # ================ #
 
 
@@ -108,10 +109,7 @@ def save_fig(image, epoch, row_num_images=10):
     Function used as well for the inference.
     :return: fake dataset X and fake labels Y
     """
-
-    Path("/generated_images_per_epoch").mkdir(parents=True, exist_ok=True)
-    filename = "/generated_images_per_epoch/generated_images_%03d.png" % (epoch + 1)
-
+    filename = "generated_images_training/generated_images_epoch_%03d.png" % (epoch + 1)
     for i in range(row_num_images * row_num_images):
         plt.subplot(row_num_images, row_num_images, 1 + i)
         plt.axis("off")
@@ -170,6 +168,8 @@ def discriminator():
 
 print("\n===== Initialize Discriminator =====")
 discriminator_model = discriminator()
+
+
 # discriminator_model.summary()
 
 
@@ -196,6 +196,8 @@ def generator(latent_dim):
 
 print("\n===== Initialize Generator =====")
 generator_model = generator(LATENT_DIM)
+
+
 # generator_model.summary()
 
 
@@ -221,7 +223,7 @@ gan_model = gan(generator_model, discriminator_model)
 gan_model.summary()
 
 
-def train(gene_model, dis_model, gan_model, dataset, latent_dim, epochs=EPOCHS, batch_size=BATCH_SIZE):
+def train(gene_model, dis_model, gans_model, dataset, latent_dim, epochs=EPOCHS, batch_size=BATCH_SIZE):
     """
     It trains the GAN model.
 
@@ -246,8 +248,9 @@ def train(gene_model, dis_model, gan_model, dataset, latent_dim, epochs=EPOCHS, 
             discriminator_loss, _ = dis_model.train_on_batch(x_training, y_training)
             x_gan = generate_latent_data(latent_dim, batch_size)
             y_gan = np.ones((batch_size, 1))
-            loss_gan = gan_model.train_on_batch(x_gan, y_gan)
-            print("Epoch: {} - Batch per epoch: {}/{} - Discriminator loss: {:.2f}, GAN loss: {:.2f}".format(i + 1, j + 1,
+            loss_gan = gans_model.train_on_batch(x_gan, y_gan)
+            print("Epoch: {} - Batch per epoch: {}/{} - Disc. loss: {:.2f}, GAN loss: {:.2f}".format(i + 1,
+                                                                                                     j + 1,
                                                                                                      batches_per_epoch,
                                                                                                      discriminator_loss,
                                                                                                      loss_gan))
@@ -257,6 +260,9 @@ def train(gene_model, dis_model, gan_model, dataset, latent_dim, epochs=EPOCHS, 
             save_checkpoint(i, gene_model, dis_model, dataset, latent_dim, False)
 
 
+# Create folder for images
+print("[INFO] Create folder for saving images during training...")
+Path("generated_images_training").mkdir(parents=True, exist_ok=True)
 
 # Load real-data from MNIST dataset
 print("[INFO] Loading data...")
@@ -265,15 +271,6 @@ train_x, _, _, _ = load_real_data()
 # Training
 print("[INFO] Training...")
 train(generator_model, discriminator_model, gan_model, train_x, LATENT_DIM)
-
-
-# TODO:
-# - Encapsulation
-# - Organize/comment code
-# - Check (briefly) hyperparameters
-# - Evaluate more often
-# - Save model before going to C++
-
 
 """
 For testing:
@@ -312,7 +309,3 @@ def train_discriminator(model, dataset, n_iterations=100, batch_size=BATCH_SIZE)
 
 train_discriminator(discriminator_model, train_x)
 """
-
-
-
-

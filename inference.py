@@ -8,6 +8,7 @@ Author: Eduardo Alvarado
 Task: In this assignment, I will create a GAN in order to generate novel numbers based on the MNIST dataset.
 """
 
+from pathlib import Path
 from numpy.random import randn
 from matplotlib import pyplot as plt
 from tensorflow.keras.models import load_model
@@ -16,6 +17,7 @@ from tensorflow.keras.models import load_model
 LATENT_DIM = 100
 SAMPLES_PER_ROW = 5
 # ================ #
+
 
 def generate_latent_data(latent_dim, num_samples):
     """
@@ -36,7 +38,7 @@ def save_fig_inference(image, row_num_images=10):
     Function used as well for the inference.
     :return: fake dataset X and fake labels Y
     """
-    filename = "generated_images_inference.png"
+    filename = "generated_images_inference/generated_image_inference.png"
     for i in range(row_num_images * row_num_images):
         plt.subplot(row_num_images, row_num_images, 1 + i)
         plt.axis("off")
@@ -45,10 +47,19 @@ def save_fig_inference(image, row_num_images=10):
     plt.close()
 
 
+# Create folder for images
+print("[INFO] Create folder for saving images during inference...")
+Path("generated_images_inference").mkdir(parents=True, exist_ok=True)
+
+# Load pre-trained Keras model
 print("[INFO] Loading pre-trained model...")
 gan_model = load_model('generator_model_015.h5')
+
+# Generate input for Generator
 print("[INFO] Generating latent data...")
 x_latent = generate_latent_data(LATENT_DIM, 25)
+
+# Inference
 print("[INFO] Creating and saving prediction...")
 generated_image = gan_model.predict(x_latent)
 save_fig_inference(generated_image, SAMPLES_PER_ROW)
