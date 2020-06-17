@@ -4,9 +4,7 @@ In this project, I have design a Generative Adversarial Network (GAN) for digita
 A Discriminator network will be trained in order to differentiate between real digits from the original dataset, and
 fake digits, generated artificially by the Generator.
 The Generator will be trained in conjunction with the Discriminator (GAN model) to generate more accurate (fake) digits
-over time.
-
-Then, the network should be moved to an C++ executable, in which the graph from the network could be loaded to perform inference.
+over time. Then, the network should be moved to an C++ executable, in which the graph from the network could be loaded to perform inference.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -14,7 +12,7 @@ Then, the network should be moved to an C++ executable, in which the graph from 
 
 - [Project Structure](#structure)
 - [Development](#development)
-- [Feedback](#feedback)
+- [Self-Feedback](#self-feedback)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -66,52 +64,42 @@ We can now load our graph-model for executing inference in the <code>inference.p
 
 <h4> 2. Deploy model to standalone executable in C++ </h4>
 
-For constructing our final <code>.pb</code> graph, we have used the Tensorflow Python API. However, as the assignment explains, these pre-trained graphs can be loaded to standalone applications across different OS using the Tensorflow C++ API.
+For constructing our final <code>.pb</code> graph, we have used the Tensorflow Python API. However, as the assignment 
+explains, these pre-trained graphs can be loaded to standalone applications across different OS using the Tensorflow 
+C++ API.
 
-To setup the environment, I required cloning the <code>Tensorflow repository</code>, build it from sourcet and using <code>Bazel</code> for compiling the library. However, I had to deal with some problems during the installation, mainly because of incompatibilities between the versions of TensorFlow and Bazel. Finally, I could start the compilation using: <code>Bazel-3.1.0</code> and <code>Tensorflow 2.1 (master branch)</code>.
+To setup the environment, I required cloning the <code>Tensorflow repository</code>, build it from source and using 
+<code>Bazel</code> for compiling the library. However, I had to deal with some problems during the installation, 
+mainly because of incompatibilities between the versions of TensorFlow and Bazel. Finally, I could finish the compilation
+installing Bazel using [Bazelisk](https://github.com/bazelbuild/bazelisk) , which installs the correct version based
+on the Tensorflow distribution (in my case, 2.1).
 
 The steps I have followed to build the C++ executable are:
 
-* Install <code>Bazel-3.1.0</code>. Compatibilities with Tensorflow can be a problem. By looking to <code>configure.py</code> at the root directory of the Tensorflow repository, one can find which are the minimum and maximum supported versions of Bazel. [Link for the installation](https://docs.bazel.build/versions/master/install-ubuntu.html).
+* Install <code>Bazel</code> using <code>Bazelisk</code> for correct compatibility.
+[Link for the installation](https://docs.bazel.build/versions/master/install-bazelisk.html).
+
+* Clone <code>Tensorflow</code> along with all the submodules, and build from source using <code>Bazel</code>. I 
+followed the following tutorial: [Source](https://www.tensorflow.org/install/source).
+
+* Once Tensorflow is configured (<code>./configure</code>) and built 
+(<code>bazel build //tensorflow/tools/pip_package:build_pip_package</code>), it will create an executable (in my case
+named <code>build_pip_package</code>). By running 
+<code>./bazel-bin/tensorflow/tools/pip_package/build_pip_package --nightly_flag /tmp/tensorflow_pkg</code> I was able
+to create finally the <code>.whl</code>.
+
+* After that, my goal was to adapt the already built graph from our network and deploy to C++ (for example following
+these instructions). Unfortunately I did not have enough time to finish this part of the assignment.
 
 
-* Clone <code>Tensorflow</code> along with all the submodules: <code> git clone --recursive https://github.com/tensorflow/tensorflow </code>. This will clone the correct Tensorflow version, so I can compile it afterwards, to get the C API headers/binaries.
+## Self-Feedback
 
-* Build Tensorflow library with Bazel. In the root directory of Tensorflow, I run:
-
-```
-bazel test -c opt tensorflow/tools/lib_package:libtensorflow_test
-bazel build -c opt tensorflow/tools/lib_package:libtensorflow_test
-```
-
-The process of building the library starts. However, I always got an error during the compilation, leading to an unsuccesfully built of the library.
-
+By looking to my task, I realize that the most complicated part for me was encapsulating the code to C++ and 
+using the C++ API to build a standalone file. I required much time researching on how it is done and setting up the 
+environment with Bazel and Tensorflow, due to compatibility errors between them during building. 
+In the last moment, I realized about <code>Bazelisk</code> and its ability to manage different versions. After installing
+<code>Bazelisk</code> in this way, building got succesfully done. It has been very important to learn more about 
+these procedures, I am willing to know more, specially after this assignment. In the network part (python) I 
+encountered less problems, just few regarding optimization. For the whole assignment, I dedicated around ~7 hours per day.
 
 
-
-
-
-
-
-
-
-
-
-
-* Then, I have created a folder inside the cloned repository containing my project (in this case, 
-<code>tensorflow/tensorflow/my_project</code>). Inside, my goal was to create a file, such as <code>loader.cc</code>, 
-in order to read the graph that I exported during training.
-
-* Besides, I had to create a <code>BUILD</code> file to define for <code>Bazel</code> which file to compile.
-
-* Once I have everything at its place, I can build <code>Tensorflow</code> from source, by typing
-<code>./configure</code> from the root of the repo.
-
-* Then, inside the project folder I run <code>bazel build :loader</code>
-
-* Error!
-
-
-## Feedback
-
-By looking to my task, I realize that the most complicated part for me was encapsulating the code to C++ and using the C++ API to build a standalone file. Although I have experience dealing with graphs and pre-trained models using the Python API, I still learn about their deployment using the C/C++ API. 
