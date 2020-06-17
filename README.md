@@ -99,7 +99,7 @@ using the C++ API to build a standalone file. I required much time researching o
 environment with Bazel and Tensorflow, due to compatibility errors between them during building. 
 In the last moment, I realized about <code>Bazelisk</code> and its ability to manage different versions. After installing
 <code>Bazelisk</code> in this way, building got succesfully done. It has been very important to learn more about 
-these procedures, I am willing to know more, specially after this assignment. In the network part (python) I 
+these procedures and I am willing to get more experience about it, specially after this assignment. In the network part (python) I 
 encountered less problems, just few regarding optimization. For the whole assignment, I dedicated around ~7 hours per day.
 
 
