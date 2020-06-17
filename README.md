@@ -10,13 +10,13 @@ over time. Then, the network should be moved to an C++ executable, in which the 
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 ## Table of Contents
 
-- [Project Structure](#structure)
+- [Structure](#structure)
 - [Development](#development)
 - [Self-Feedback](#self-feedback)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Project Structure
+## Structure
 
 ```bash
 HRAssignment-Repository
