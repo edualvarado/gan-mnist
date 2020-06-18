@@ -1,8 +1,7 @@
 """
 #####################
-Assignment - InstaLOD
-#####################
 Deep Convolutional Generative Adversarial Network (GANs)
+#####################
 File: training.py
 Author: Eduardo Alvarado
 Task: In this assignment, I will create a GAN in order to generate novel numbers based on the MNIST dataset.
