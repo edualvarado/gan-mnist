@@ -1,4 +1,4 @@
-<h2 align="center"> Assignment - InstaLOD </h2>
+<h2 align="center"> GAN - MNIST </h2>
 <b> Author: </b> Eduardo Alvarado <br> <br> 
 In this project, I have design a Generative Adversarial Network (GAN) for digital digits generation (MNIST).
 A Discriminator network will be trained in order to differentiate between real digits from the original dataset, and
