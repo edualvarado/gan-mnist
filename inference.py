@@ -52,7 +52,6 @@ Path("generated_images_inference").mkdir(parents=True, exist_ok=True)
 
 # Load pre-trained Keras model
 print("[INFO] Loading pre-trained model...")
-#gan_model = load_model('generator_model_015.h5')
 gan_model = load_model('generator_model_final')
 
 # Generate input for Generator
