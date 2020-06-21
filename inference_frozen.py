@@ -86,11 +86,11 @@ save_fig_inference(generated_image, SAMPLES_PER_ROW)
 """
 
 # Load frozen graph using TensorFlow 1.x functions
-with tf.io.gfile.GFile("./freeze_graph.pb", "rb") as f:
+with tf.io.gfile.GFile("./generator_model_final_frozen/frozen_graph.pb", "rb") as f:
     graph_def = tf.compat.v1.GraphDef()
-    loaded = graph_def.ParseFromString(f.read())
+    graph_def.ParseFromString(f.read())
 
-# Wrap frozen graph to ConcreteFunctions
+# TODO: Wrap frozen graph to ConcreteFunctions
 frozen_func = wrap_frozen_graph(graph_def=graph_def,
                                 inputs=["serving_default_dense_1_input:0"],
                                 outputs=["StatefulPartitionedCall:0"],
